@@ -1,6 +1,5 @@
-flask
-flask-sqlalchemy
-gunicorn
-psycopg2-binary
-Werkzeug
+Flask
+Flask-SQLAlchemy
 pytz
+gunicorn
+cloudinary

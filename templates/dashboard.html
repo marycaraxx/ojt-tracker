@@ -42,12 +42,14 @@
         <header class="flex items-center justify-between px-6 pt-8 pb-4">
             <div class="flex items-center gap-3">
                 <div class="size-12 overflow-hidden rounded-2xl border-2 border-primary/20 bg-primary/10 flex items-center justify-center shadow-sm">
-                    {% if user.profile_pic and user.profile_pic != 'default.png' %}
-                        <img alt="User Profile" class="size-full object-cover" src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}"/>
-                    {% else %}
+                    {% if user.profile_pic == 'default.png' or not user.profile_pic %}
                         <img alt="User Profile" class="size-full object-cover" src="https://ui-avatars.com/api/?name={{ user.name }}&background=135bec&color=fff"/>
+                    {% elif user.profile_pic.startswith('http') %}
+                        <img alt="User Profile" class="size-full object-cover" src="{{ user.profile_pic }}"/>
+                    {% else %}
+                        <img alt="User Profile" class="size-full object-cover" src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}"/>
                     {% endif %}
-                </div>
+                    </div>
                 <div>
                     <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Student ID: {{ user.student_id }}</p>
                     <h2 class="text-lg font-extrabold leading-tight text-slate-800 dark:text-white">{{ user.name }}</h2>

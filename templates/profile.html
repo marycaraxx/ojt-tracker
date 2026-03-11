@@ -46,10 +46,13 @@
                     <div class="relative">
                         {% if user.profile_pic == 'default.png' %}
                             {% set avatar_url = "https://ui-avatars.com/api/?name=" + user.name + "&background=135bec&color=fff&size=128" %}
+                        {% elif user.profile_pic.startswith('http') %}
+                            {# If it's a Cloudinary URL #}
+                            {% set avatar_url = user.profile_pic %}
                         {% else %}
+                            {# Fallback for local testing #}
                             {% set avatar_url = url_for('static', filename='profile_pics/' + user.profile_pic) %}
                         {% endif %}
-
                         <div id="profile-preview" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 border-4 border-white dark:border-slate-800 shadow-lg" 
                              style="background-image: url('{{ avatar_url }}');">
                         </div>
@@ -137,7 +140,6 @@
     </div>
 
     <script>
-        // Preview profile picture before upload
         document.getElementById('imageInput').addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -149,7 +151,6 @@
             }
         });
 
-        // Toggle Password Visibility
         function togglePass() {
             const passInput = document.getElementById('profilePassword');
             const passIcon = document.getElementById('passIcon');

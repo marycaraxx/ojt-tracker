@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from datetime import datetime
+import cloudinary
+import cloudinary.uploader
 import os
 import csv
 import io
@@ -263,9 +265,10 @@ def update_profile():
     if 'profile_pic' in request.files:
         file = request.files['profile_pic']
         if file and file.filename != '':
-            filename = secure_filename(f"user_{user.id}_{file.filename}")
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            user.profile_pic = filename
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(file)
+            # Save the URL provided by Cloudinary to the database
+            user.profile_pic = upload_result['secure_url']
 
     db.session.commit()
     return redirect(url_for('profile_page'))
