@@ -262,25 +262,19 @@ def update_profile():
 @app.route('/export/pdf')
 @login_required
 def export_pdf():
-    # Use the logged-in user's ID from the session for security
     user_id = session.get('user_id') 
     user = User.query.get(user_id)
     
-    # Get date filters from the URL parameters
     start_date = request.args.get('start')
     end_date = request.args.get('end')
     
-    # Fetch logs only for this specific user
     query = Attendance.query.filter_by(user_id=user_id)
-    
     if start_date:
         query = query.filter(Attendance.date >= start_date)
     if end_date:
         query = query.filter(Attendance.date <= end_date)
         
     logs = query.order_by(Attendance.date.asc()).all()
-    
-    # Calculate total hours for the report
     total_period_hours = round(sum(log.hours for log in logs), 2)
     
     return render_template('report_print.html', 

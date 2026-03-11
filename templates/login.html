@@ -3,10 +3,20 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <title>OJT Tracker - Login</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='profile_pics/ojt_logo.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='profile_pics/ojt_logo.png') }}">
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -24,8 +34,8 @@
     <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800">
         <div class="p-8">
             <div class="flex justify-center mb-6">
-                <div class="bg-primary/10 p-4 rounded-2xl">
-                    <span class="material-symbols-outlined text-primary text-4xl">fingerprint</span>
+                <div class="h-20 w-20 rounded-2xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800">
+                    <img src="{{ url_for('static', filename='profile_pics/ojt_logo.png') }}" alt="OJT Tracker Logo" class="h-full w-full object-cover">
                 </div>
             </div>
 
