@@ -10,9 +10,15 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'ojt_secret_key_123'
 
-# --- CONFIGURATION ---
+# --- CONFIGURATION (UPDATED FOR POSTGRESQL) ---
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'ojt_tracker.db')
+
+# Look for DATABASE_URL (PostgreSQL) from Render, otherwise use SQLite
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///' + os.path.join(basedir, 'ojt_tracker.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'profile_pics')
 
@@ -112,7 +118,6 @@ def history():
         session.clear()
         return redirect(url_for('login_page'))
     
-    # Updated: Now returns ALL logs for 2026 without the limit of 5
     logs = Attendance.query.filter(
         Attendance.user_id == user.id, 
         Attendance.date.like('%2026%')
@@ -271,7 +276,7 @@ def export_attendance_pdf():
 
     logs = query.order_by(Attendance.date.asc()).all()
     
-    # CALCULATE TOTAL HERE
+    # FIX: Calculate total here
     calculated_total = round(sum(log.hours for log in logs), 2)
     
     return render_template('report_print.html', 
@@ -279,8 +284,7 @@ def export_attendance_pdf():
                            logs=logs, 
                            start=start_date, 
                            end=end_date, 
-                           # ENSURE THIS NAME MATCHES YOUR HTML
-                           total_period_hours=calculated_total,
+                           total_period_hours=calculated_total, # Sent to HTML
                            now=datetime.now())
 
 @app.route('/update_log', methods=['POST'])
@@ -315,6 +319,5 @@ def logout():
     return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
-    # Render provides a PORT environment variable. This line is mandatory for hosting.
     port = int(os.environ.get("PORT", 8081))
     app.run(host='0.0.0.0', port=port)
