@@ -13,6 +13,12 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'ojt_secret_key_123'
 
+cloudinary.config( 
+  cloud_name = "dubnko427", 
+  api_key = "611318728434917", 
+  api_secret = "-QIoOqnmGjvM5LcawvFo_SmD9MU" 
+)
+
 # --- CONFIGURATION (POSTGRESQL & SQLITE) ---
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -251,8 +257,10 @@ def log_past():
         return jsonify({"success": False, "message": str(e)}), 400
 
 @app.route('/update_profile', methods=['POST'])
-@login_required
 def update_profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+        
     user = User.query.get(session['user_id'])
     user.name = request.form.get('name', user.name)
     user.email = request.form.get('email', user.email)
@@ -265,9 +273,8 @@ def update_profile():
     if 'profile_pic' in request.files:
         file = request.files['profile_pic']
         if file and file.filename != '':
-            # Upload to Cloudinary
+            # This uploads the file to Cloudinary and gets a permanent URL
             upload_result = cloudinary.uploader.upload(file)
-            # Save the URL provided by Cloudinary to the database
             user.profile_pic = upload_result['secure_url']
 
     db.session.commit()
