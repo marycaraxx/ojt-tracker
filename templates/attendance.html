@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Log Past Attendance - OJT Tracker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: { "display": ["Inter"] },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased">
+    <div class="max-w-md mx-auto min-h-screen flex flex-col bg-white dark:bg-slate-900 shadow-xl relative pb-24 border-x border-slate-200 dark:border-slate-800">
+        
+        <header class="p-6 flex items-center gap-4 pt-10">
+            <a href="/dashboard" class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">arrow_back</a>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">New Entry</h1>
+                <p class="text-slate-500 text-sm">Fill in missed session details.</p>
+            </div>
+        </header>
+
+        <main class="flex-1 px-6 space-y-6">
+            <form id="pastLogForm" class="space-y-6">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Work Date</label>
+                    <input id="date" name="date" required 
+                           class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-4 focus:ring-2 focus:ring-primary transition-all text-sm" 
+                           type="date" min="2026-01-01" max="2026-12-31"/>
+                    <p class="text-[10px] text-amber-600 font-medium italic">Note: Only 2026 records are accepted.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm">light_mode</span>
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider">Morning Session</label>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] text-slate-400 font-bold ml-1 uppercase">Time In</span>
+                            <input id="m_in" name="m_in" class="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 text-sm focus:ring-2 focus:ring-primary transition-all" type="time" value="08:00"/>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] text-slate-400 font-bold ml-1 uppercase">Time Out</span>
+                            <input id="m_out" name="m_out" class="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 text-sm focus:ring-2 focus:ring-primary transition-all" type="time" value="12:00"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-500 text-sm">wb_twilight</span>
+                        <label class="text-xs font-bold text-amber-600 uppercase tracking-wider">Afternoon Session</label>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] text-slate-400 font-bold ml-1 uppercase">Time In</span>
+                            <input id="a_in" name="a_in" class="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 text-sm focus:ring-2 focus:ring-primary transition-all" type="time" value="13:00"/>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] text-slate-400 font-bold ml-1 uppercase">Time Out</span>
+                            <input id="a_out" name="a_out" class="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 text-sm focus:ring-2 focus:ring-primary transition-all" type="time" value="17:00"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Location / Dept</label>
+                        <input id="location" name="location" required 
+                               class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-4 focus:ring-2 focus:ring-primary transition-all text-sm" 
+                               placeholder="e.g. IT Department" type="text" value="Information & Communications Technology Section"/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Task</label>
+                        <textarea id="description" name="description" required 
+                                  class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 focus:ring-2 focus:ring-primary transition-all resize-none text-sm" 
+                                  placeholder="Summarize your work today..." rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="bg-primary/5 p-4 rounded-2xl flex justify-between items-center border border-primary/10">
+                    <span class="text-xs font-bold text-primary uppercase">Estimated Total</span>
+                    <span id="hours-display" class="text-lg font-bold text-primary">8.00 hrs</span>
+                </div>
+
+                <button class="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all" type="submit">
+                    <span class="material-symbols-outlined">send</span> Submit Entry
+                </button>
+            </form>
+        </main>
+
+        <nav class="fixed bottom-0 max-w-md w-full border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl z-50">
+            <div class="flex justify-around items-end py-2">
+                <a class="flex flex-col items-center gap-1 text-slate-400" href="/dashboard">
+                    <span class="material-symbols-outlined text-2xl">grid_view</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Dashboard</span>
+                </a>
+                <a class="flex flex-col items-center gap-1 text-primary relative" href="/attendance">
+                    <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">fingerprint</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Log</span>
+                    <div class="size-1 bg-primary rounded-full absolute -top-1"></div>
+                </a>
+                <a class="flex flex-col items-center gap-1 text-slate-400" href="/log">
+                    <span class="material-symbols-outlined text-2xl">history</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">History</span>
+                </a>
+                <a class="flex flex-col items-center gap-1 text-slate-400" href="/reports">
+                    <span class="material-symbols-outlined text-2xl">analytics</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Reports</span>
+                </a>
+                <a class="flex flex-col items-center gap-1 text-slate-400" href="/profile">
+                    <span class="material-symbols-outlined text-2xl">person</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Profile</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // Set default date to today
+        document.getElementById('date').valueAsDate = new Date();
+
+        function calculateHours() {
+            const getMins = (val) => {
+                if (!val) return 0;
+                const [h, m] = val.split(':').map(Number);
+                return h * 60 + m;
+            };
+
+            const mIn = getMins(document.getElementById('m_in').value);
+            const mOut = getMins(document.getElementById('m_out').value);
+            const aIn = getMins(document.getElementById('a_in').value);
+            const aOut = getMins(document.getElementById('a_out').value);
+
+            const mTotal = Math.max(0, mOut - mIn);
+            const aTotal = Math.max(0, aOut - aIn);
+            
+            const totalHours = (mTotal + aTotal) / 60;
+            document.getElementById('hours-display').innerText = totalHours.toFixed(2) + ' hrs';
+            return totalHours;
+        }
+
+        // Listen for changes to update hours in real-time
+        ['m_in', 'm_out', 'a_in', 'a_out'].forEach(id => {
+            document.getElementById(id).addEventListener('change', calculateHours);
+        });
+
+        // Form Submission
+        document.getElementById('pastLogForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const dateValue = document.getElementById('date').value;
+            
+            // Front-end safety check for the year 2026
+            if (!dateValue.startsWith('2026')) {
+                alert("Only records for the year 2026 are allowed.");
+                return;
+            }
+
+            const payload = {
+                date: dateValue,
+                m_in: document.getElementById('m_in').value,
+                m_out: document.getElementById('m_out').value,
+                a_in: document.getElementById('a_in').value,
+                a_out: document.getElementById('a_out').value,
+                hours: calculateHours(),
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch('/api/log-past', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/log'; 
+                } else {
+                    alert("Submission Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to connect to the server. Please check your connection.");
+            }
+        });
+
+        // Initialize hours display
+        calculateHours();
+    </script>
+</body>
+</html>

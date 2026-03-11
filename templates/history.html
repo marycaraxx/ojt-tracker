@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>OJT Attendance History</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: { "display": ["Inter"] },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .log-desc-content.truncated {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hidden-modal { display: none !important; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+    <div class="relative flex min-h-screen w-full max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark border-x border-slate-200 dark:border-slate-800 shadow-sm">
+        
+        <div class="flex items-center bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 justify-between">
+            <a href="/dashboard" class="text-slate-900 dark:text-slate-100 flex size-12 items-center justify-start transition-opacity hover:opacity-70">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h2 class="text-lg font-bold flex-1 text-center">History</h2>
+            <div class="flex w-12 items-center justify-end">
+                <button class="text-primary"><span class="material-symbols-outlined">filter_list</span></button>
+            </div>
+        </div>
+
+        <div class="px-4 py-4">
+            <div class="flex items-stretch rounded-xl h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div class="text-slate-400 flex items-center justify-center pl-4"><span class="material-symbols-outlined">search</span></div>
+                <input id="searchInput" onkeyup="filterLogs()" class="form-input w-full border-none bg-transparent focus:ring-0 text-sm" placeholder="Search logs..."/>
+            </div>
+        </div>
+
+        <div class="px-4 pb-4 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-primary p-4 rounded-xl text-white shadow-lg">
+                    <p class="text-[10px] opacity-80 uppercase font-bold tracking-wider">Accumulated Hours</p>
+                    <p class="text-2xl font-bold">{{ "%.2f"|format(total_hours) }} <span class="text-xs opacity-60">/ 480</span></p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Total Sessions</p>
+                    <p class="text-2xl font-bold">{{ logs|length }}</p>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-bold uppercase text-slate-500">Completion Progress</span>
+                    <span class="text-[10px] font-bold text-primary">{{ "%.1f"|format((total_hours / 480) * 100) }}%</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div class="bg-primary h-full transition-all duration-500" style="width: {{ (total_hours / 480) * 100 }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="logContainer" class="px-4 pt-2 pb-32 flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold uppercase opacity-70">
+                    {% if showing_all %} All Records {% else %} Recent Records {% endif %}
+                </h3>
+                {% if not showing_all and logs|length >= 5 %}
+                <a href="/log?all=true" class="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
+                    See All <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </a>
+                {% endif %}
+            </div>
+
+            {% if logs %}
+                {% for log in logs %}
+                <div class="log-card bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-sm font-bold log-date">{{ log.date }}</p>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{{ log.location }}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" 
+                                    onclick="openEditModal('{{ log.id }}', '{{ log.date }}', '{{ log.m_in }}', '{{ log.m_out }}', '{{ log.a_in }}', '{{ log.a_out }}', '{{ log.description|replace('\'', '')|replace('\n', ' ') }}')" 
+                                    class="flex items-center justify-center size-9 rounded-full bg-slate-100 dark:bg-slate-800 text-primary hover:bg-primary hover:text-white transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <span class="rounded-full bg-emerald-500/10 text-emerald-500 px-3 py-1 text-[10px] font-bold uppercase">Success</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 dark:border-slate-800/50">
+                        <div class="border-r border-slate-100 dark:border-slate-800">
+                            <p class="text-[9px] text-primary font-bold uppercase">Morning Session</p>
+                            <span class="text-xs font-bold">{{ log.m_in }} — {{ log.m_out }}</span>
+                        </div>
+                        <div class="pl-2">
+                            <p class="text-[9px] text-amber-500 font-bold uppercase">Afternoon Session</p>
+                            <span class="text-xs font-bold">{{ log.a_in }} — {{ log.a_out }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <p id="desc-{{ loop.index }}" class="text-[11px] text-slate-500 dark:text-slate-400 log-desc-content truncated">
+                            <span class="font-bold text-slate-700 dark:text-slate-200">Tasks:</span> {{ log.description }}
+                        </p>
+                        <div class="flex justify-between items-center mt-2">
+                            <button onclick="toggleDescription('{{ loop.index }}')" id="btn-{{ loop.index }}" class="text-[10px] text-primary font-bold uppercase">See More</button>
+                            <div class="bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                                <span class="text-[11px] font-bold">Total: <span class="text-primary">{{ "%.2f"|format(log.hours) }} hrs</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if showing_all %}
+                <div class="py-4 text-center">
+                    <a href="/log" class="text-sm font-bold text-slate-400 hover:text-primary transition-colors italic">Show Less</a>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <div class="flex flex-col items-center justify-center py-10 opacity-50">
+                    <span class="material-symbols-outlined text-5xl">history_toggle_off</span>
+                    <p class="text-sm mt-2">No records found for 2026</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <nav class="fixed bottom-0 max-w-md w-full border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl z-50">
+            <div class="flex justify-around items-end py-2">
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/dashboard">
+                    <span class="material-symbols-outlined">grid_view</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Dashboard</span>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/attendance">
+                    <span class="material-symbols-outlined">fingerprint</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Log</span>
+                </a>
+                <a class="flex flex-col items-center text-primary gap-1 relative" href="/log">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">History</span>
+                    <div class="size-1 bg-primary rounded-full absolute -top-1"></div>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/reports">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Reports</span>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/profile">
+                    <span class="material-symbols-outlined">person</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Profile</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <div id="editModal" class="hidden-modal fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold">Update Log Entry</h3>
+                <button onclick="closeEditModal()" class="text-slate-400"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            
+            <form action="/update_log" method="POST" class="space-y-4">
+                <input type="hidden" name="log_id" id="modal_log_id">
+                
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Date</label>
+                    <input type="date" name="date" id="modal_date" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Morning In</label>
+                        <input type="time" name="m_in" id="modal_m_in" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Morning Out</label>
+                        <input type="time" name="m_out" id="modal_m_out" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Afternoon In</label>
+                        <input type="time" name="a_in" id="modal_a_in" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Afternoon Out</label>
+                        <input type="time" name="a_out" id="modal_a_out" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Tasks / Description</label>
+                    <textarea name="description" id="modal_description" rows="3" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary resize-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">Save and Replace</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(id, date, mIn, mOut, aIn, aOut, desc) {
+            document.getElementById('modal_log_id').value = id;
+            document.getElementById('modal_date').value = date;
+            document.getElementById('modal_m_in').value = mIn;
+            document.getElementById('modal_m_out').value = mOut;
+            document.getElementById('modal_a_in').value = aIn;
+            document.getElementById('modal_a_out').value = aOut;
+            document.getElementById('modal_description').value = desc;
+            
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden-modal');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('hidden-modal');
+            modal.classList.remove('flex');
+        }
+
+        function filterLogs() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.getElementsByClassName('log-card');
+            for (let i = 0; i < cards.length; i++) {
+                const text = cards[i].innerText.toLowerCase();
+                cards[i].style.display = text.includes(input) ? "" : "none";
+            }
+        }
+
+        function toggleDescription(id) {
+            const content = document.getElementById('desc-' + id);
+            const btn = document.getElementById('btn-' + id);
+            content.classList.toggle('truncated');
+            btn.innerText = content.classList.contains('truncated') ? 'See More' : 'Show Less';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) closeEditModal();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>User Profile - OJT Tracker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: { "display": ["Inter"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        #profile-preview { transition: background-image 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+    <div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden border-x border-slate-200 dark:border-slate-800 shadow-sm">
+        
+        <div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+            <a href="/dashboard" class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-start">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center">Profile</h2>
+            <div class="w-12"></div>
+        </div>
+
+        <form action="/update_profile" method="POST" enctype="multipart/form-data">
+            
+            <div class="flex p-6">
+                <div class="flex w-full flex-col gap-4 items-center">
+                    <div class="relative">
+                        {% if user.profile_pic == 'default.png' %}
+                            {% set avatar_url = "https://ui-avatars.com/api/?name=" + user.name + "&background=135bec&color=fff&size=128" %}
+                        {% else %}
+                            {% set avatar_url = url_for('static', filename='profile_pics/' + user.profile_pic) %}
+                        {% endif %}
+
+                        <div id="profile-preview" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 border-4 border-white dark:border-slate-800 shadow-lg" 
+                             style="background-image: url('{{ avatar_url }}');">
+                        </div>
+                        
+                        <input type="file" name="profile_pic" id="imageInput" accept="image/*" class="hidden">
+                        
+                        <button type="button" onclick="document.getElementById('imageInput').click()" class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-md flex items-center justify-center border-2 border-white dark:border-slate-800 hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined text-sm">photo_camera</span>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center text-center">
+                        <input type="text" name="name" value="{{ user.name }}" class="bg-transparent border-0 text-center text-2xl font-bold p-0 focus:ring-0 w-full" placeholder="Your Name">
+                        <p class="text-primary text-base font-semibold leading-normal">Student Intern</p>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm font-normal mt-1">
+                            ID: {{ user.student_id }} | Dept: {{ user.department or 'Not Set' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 pb-24">
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-4 opacity-70">Contact & Affiliation</h3>
+                <div class="flex flex-col gap-3">
+                    
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14">
+                        <div class="flex items-center justify-center pl-4 text-slate-400">
+                            <span class="material-symbols-outlined text-xl">corporate_fare</span>
+                        </div>
+                        <input name="department" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0" value="{{ user.department }}" placeholder="Department (e.g. BS Computer Engineering)"/>
+                    </div>
+
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14">
+                        <div class="flex items-center justify-center pl-4 text-slate-400">
+                            <span class="material-symbols-outlined text-xl">mail</span>
+                        </div>
+                        <input name="email" type="email" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0" value="{{ user.email }}" placeholder="Email Address"/>
+                    </div>
+
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14">
+                        <div class="flex items-center justify-center pl-4 text-slate-400">
+                            <span class="material-symbols-outlined text-xl">call</span>
+                        </div>
+                        <input name="phone" type="text" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0" value="{{ user.phone }}" placeholder="Mobile Number"/>
+                    </div>
+                </div>
+
+                <div class="mt-6 px-2">
+                    <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">
+                        Save Profile Changes
+                    </button>
+                </div>
+
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-8 opacity-70">Account Settings</h3>
+                <div class="flex flex-col gap-2">
+                    <a class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 group" href="#">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-primary/10 p-2 rounded-lg text-primary">
+                                <span class="material-symbols-outlined">lock</span>
+                            </div>
+                            <span class="font-medium">Change Password</span>
+                        </div>
+                        <span class="material-symbols-outlined text-slate-400">chevron_right</span>
+                    </a>
+                </div>
+
+                <div class="mt-10 px-2">
+                    <button type="button" onclick="location.href='/logout'" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-4 rounded-xl border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">logout</span> Log Out
+                    </button>
+                    <p class="text-center text-xs text-slate-400 mt-6">App Version 2.4.0</p>
+                </div>
+            </div>
+        </form>
+
+        <nav class="fixed bottom-0 max-w-md w-full border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-50">
+            <div class="flex justify-around items-center p-2">
+                <a class="flex flex-col items-center p-2 text-slate-400" href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px]">Dashboard</span></a>
+                <a class="flex flex-col items-center p-2 text-slate-400" href="/attendance"><span class="material-symbols-outlined">fingerprint</span><span class="text-[10px]">Attendance</span></a>
+                <a class="flex flex-col items-center p-2 text-slate-400" href="/log"><span class="material-symbols-outlined">history</span><span class="text-[10px]">History</span></a>
+                <a class="flex flex-col items-center p-2 text-slate-400" href="/reports"><span class="material-symbols-outlined">assessment</span><span class="text-[10px]">Reports</span></a>
+                <a class="flex flex-col items-center p-2 text-primary" href="/profile"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span><span class="text-[10px] font-bold">Profile</span></a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-preview').style.backgroundImage = `url('${e.target.result}')`;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

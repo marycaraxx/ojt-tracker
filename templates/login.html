@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>OJT Tracker - Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { "primary": "#135bec", "background-light": "#f6f6f8", "background-dark": "#101622" },
+                    fontFamily: { "display": ["Inter"] },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+        <div class="p-8">
+            <div class="flex justify-center mb-6">
+                <div class="bg-primary/10 p-4 rounded-2xl">
+                    <span class="material-symbols-outlined text-primary text-4xl">fingerprint</span>
+                </div>
+            </div>
+
+            <div class="text-center mb-8">
+                <h1 id="formTitle" class="text-2xl font-bold tracking-tight">Welcome Back</h1>
+                <p id="formSub" class="text-slate-500 text-sm mt-1">Please sign in to continue.</p>
+            </div>
+
+            <form id="authForm" class="space-y-4">
+                <div id="studentIdContainer" class="hidden transition-all duration-300">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Student ID</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">badge</span>
+                        <input type="text" id="student_id" 
+                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary" 
+                            placeholder="e.g. 2026-1234">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Username</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
+                        <input type="text" id="username" required 
+                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary" 
+                            placeholder="Enter username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">lock</span>
+                        <input type="password" id="password" required 
+                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary" 
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" 
+                    class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    Sign In <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <button id="toggleBtn" onclick="toggleAuth()" class="text-sm font-medium text-slate-500 hover:text-primary transition-colors">
+                    Don't have an account? <span class="text-primary font-bold underline underline-offset-4">Sign Up</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLogin = true;
+
+        function toggleAuth() {
+            isLogin = !isLogin;
+            const title = document.getElementById('formTitle');
+            const sub = document.getElementById('formSub');
+            const btn = document.getElementById('submitBtn');
+            const toggle = document.getElementById('toggleBtn');
+            const studentIdBox = document.getElementById('studentIdContainer');
+
+            if (isLogin) {
+                title.innerText = "Welcome Back";
+                sub.innerText = "Please sign in to continue.";
+                btn.innerHTML = 'Sign In <span class="material-symbols-outlined">arrow_forward</span>';
+                toggle.innerHTML = 'Don\'t have an account? <span class="text-primary font-bold underline underline-offset-4">Sign Up</span>';
+                studentIdBox.classList.add('hidden');
+                document.getElementById('student_id').required = false;
+            } else {
+                title.innerText = "Create Account";
+                sub.innerText = "Register to start tracking your 2026 OJT.";
+                btn.innerHTML = 'Create Account <span class="material-symbols-outlined">person_add</span>';
+                toggle.innerHTML = 'Already have an account? <span class="text-primary font-bold underline underline-offset-4">Sign In</span>';
+                studentIdBox.classList.remove('hidden');
+                document.getElementById('student_id').required = true;
+            }
+        }
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            if (!isLogin) {
+                payload.student_id = document.getElementById('student_id').value;
+            }
+
+            const endpoint = isLogin ? '/api/login' : '/api/signup';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (isLogin) {
+                        window.location.href = '/dashboard';
+                    } else {
+                        alert("Registration successful! You can now sign in.");
+                        toggleAuth();
+                    }
+                } else {
+                    alert(data.message || "Error occurred");
+                }
+            } catch (err) {
+                alert("Server connection failed.");
+            }
+        });
+    </script>
+</body>
+</html>

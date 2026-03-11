@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: { "display": ["Inter"] },
+                },
+            },
+        }
+    </script>
+    <title>OJT Mobile Dashboard</title>
+    <style> 
+        body { min-height: 100dvh; } 
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .progress-ring__circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+    <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
+        
+        <header class="flex items-center justify-between px-6 pt-8 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="size-12 overflow-hidden rounded-2xl border-2 border-primary/20 bg-primary/10 flex items-center justify-center shadow-sm">
+                    {% if user.profile_pic and user.profile_pic != 'default.png' %}
+                        <img alt="User Profile" class="size-full object-cover" src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}"/>
+                    {% else %}
+                        <img alt="User Profile" class="size-full object-cover" src="https://ui-avatars.com/api/?name={{ user.name }}&background=135bec&color=fff"/>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Student ID: {{ user.student_id }}</p>
+                    <h2 class="text-lg font-extrabold leading-tight text-slate-800 dark:text-white">{{ user.name }}</h2>
+                </div>
+            </div>
+            <button class="relative p-2 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+                <span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+            </button>
+        </header>
+
+        <main class="flex-1 px-6 py-4 space-y-6">
+            <div class="text-center py-4 space-y-1 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800">
+                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Live Session</p>
+                <h1 id="current-time" class="text-4xl font-black tracking-tight text-slate-800 dark:text-white">00:00:00</h1>
+                <p id="current-date" class="text-sm font-medium text-slate-500">Loading Date...</p>
+            </div>
+
+            <div class="relative overflow-hidden bg-primary p-6 rounded-[2.5rem] text-white shadow-xl shadow-primary/20">
+                <div class="relative z-10 flex justify-between items-center">
+                    <div>
+                        <p class="text-primary-100 text-xs font-bold uppercase tracking-widest opacity-80">Total Progress</p>
+                        <h3 class="text-4xl font-black mt-1">{{ user.total_hours }}<span class="text-lg font-medium opacity-60"> / 480h</span></h3>
+                    </div>
+                    <div class="relative size-16">
+                        <svg class="size-full" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="16" fill="none" class="stroke-white/20" stroke-width="4"></circle>
+                            <circle cx="18" cy="18" r="16" fill="none" class="stroke-white progress-ring__circle" stroke-width="4" 
+                                    stroke-dasharray="100" stroke-dashoffset="{{ 100 - (user.total_hours / 480 * 100) }}"></circle>
+                        </svg>
+                        <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                            {{ ((user.total_hours / 480) * 100) | round | int }}%
+                        </span>
+                    </div>
+                </div>
+                <div class="absolute -right-4 -bottom-4 size-24 bg-white/10 rounded-full blur-2xl"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Days Left</span>
+                    <h4 class="text-2xl font-black text-primary">{{ user.remaining_days }}</h4>
+                    <p class="text-[9px] text-slate-500 font-medium">@ 8hrs/day</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hours Left</span>
+                    <h4 class="text-2xl font-black text-slate-800 dark:text-white">{{ user.remaining_hours }}</h4>
+                    <p class="text-[9px] text-slate-500 font-medium">To target</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-500">light_mode</span>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100">Morning</h3>
+                        </div>
+                        <span class="text-[10px] px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-full font-bold">08:00 - 12:00</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="handleClock('m_in')" class="flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                            <span class="material-symbols-outlined text-lg">login</span> In
+                        </button>
+                        <button onclick="handleClock('m_out')" class="flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-sm cursor-not-allowed">
+                            <span class="material-symbols-outlined text-lg">logout</span> Out
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-orange-500">wb_twilight</span>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100">Afternoon</h3>
+                        </div>
+                        <span class="text-[10px] px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-full font-bold">13:00 - 17:00</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="handleClock('a_in')" class="flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-sm cursor-not-allowed">
+                            <span class="material-symbols-outlined text-lg">login</span> In
+                        </button>
+                        <button onclick="handleClock('a_out')" class="flex items-center justify-center gap-2 py-4 rounded-2xl bg-red-500 text-white font-bold text-sm shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+                            <span class="material-symbols-outlined text-lg">logout</span> Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 max-w-md w-full border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl z-50">
+            <div class="flex justify-around items-end py-2">
+                <a class="flex flex-col items-center text-primary gap-1 relative" href="/dashboard">
+                    <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Dashboard</span>
+                    <div class="size-1 bg-primary rounded-full absolute -top-1"></div>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/attendance">
+                    <span class="material-symbols-outlined text-2xl">fingerprint</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Log</span>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/log">
+                    <span class="material-symbols-outlined text-2xl">history</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">History</span>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/reports">
+                    <span class="material-symbols-outlined text-2xl">analytics</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Reports</span>
+                </a>
+                <a class="flex flex-col items-center text-slate-400 gap-1" href="/profile">
+                    <span class="material-symbols-outlined text-2xl">person</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Profile</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            
+            if(document.getElementById('current-date')) {
+                document.getElementById('current-date').innerText = now.toLocaleDateString('en-US', dateOptions);
+            }
+            if(document.getElementById('current-time')) {
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('en-US', timeOptions);
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function handleClock(action) {
+            try {
+                const response = await fetch('/api/clock-action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action })
+                });
+                const data = await response.json();
+                if (data.success) { location.reload(); }
+                else { alert(data.message); }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    </script>
+</body>
+</html>
