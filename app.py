@@ -324,9 +324,7 @@ def logout():
     return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
-    # Render will inject a 'PORT' environment variable. 
-    # If it's not there (like on your laptop), it defaults to 5000.
+    # This line is critical: it tells the app to use Render's assigned port
     port = int(os.environ.get("PORT", 5000))
-    
-    # On Render, host MUST be '0.0.0.0' to be accessible externally
+    # host must be 0.0.0.0 for Render to see the app
     app.run(host='0.0.0.0', port=port)
