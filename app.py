@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import csv
 import io
+import pytz
 from functools import wraps
 
 app = Flask(__name__)
@@ -24,6 +25,12 @@ app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'profile_pics')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
+
+# --- TIMEZONE HELPER ---
+def get_ph_time():
+    """Returns the current time in Philippine Standard Time (PHT)."""
+    ph_timezone = pytz.timezone('Asia/Manila')
+    return datetime.now(pytz.utc).astimezone(ph_timezone)
 
 # --- DATABASE MODELS ---
 class User(db.Model):
@@ -96,8 +103,8 @@ def dashboard():
     user.remaining_hours = round(remaining_hours, 2)
     user.remaining_days = int(remaining_days) if remaining_days % 1 == 0 else round(remaining_days, 1)
     
-    # Get today's task if it exists
-    today_str = datetime.now().strftime('%Y-%m-%d')
+    # Get today's task using PH Time
+    today_str = get_ph_time().strftime('%Y-%m-%d')
     today_log = Attendance.query.filter_by(user_id=user.id, date=today_str).first()
     today_task = today_log.description if today_log else ""
 
@@ -167,7 +174,8 @@ def login():
 def submit_task():
     data = request.json
     description = data.get('description', '').strip()
-    today_str = datetime.now().strftime('%Y-%m-%d')
+    # Use PH Time
+    today_str = get_ph_time().strftime('%Y-%m-%d')
     user_id = session['user_id']
 
     log = Attendance.query.filter_by(user_id=user_id, date=today_str).first()
@@ -185,8 +193,11 @@ def submit_task():
 def attendance_action():
     data = request.json
     action_type = data.get('type') # 'm_in', 'm_out', 'a_in', 'a_out'
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    time_str = datetime.now().strftime('%H:%M')
+    
+    # Use PH Time for both date and timestamp
+    ph_now = get_ph_time()
+    today_str = ph_now.strftime('%Y-%m-%d')
+    time_str = ph_now.strftime('%H:%M')
     user_id = session['user_id']
 
     log = Attendance.query.filter_by(user_id=user_id, date=today_str).first()
@@ -283,7 +294,7 @@ def export_pdf():
                            start=start_date, 
                            end=end_date, 
                            total_period_hours=total_period_hours,
-                           now=datetime.now())
+                           now=get_ph_time()) # Corrected to PH Time
 
 @app.route('/update_log', methods=['POST'])
 @login_required
