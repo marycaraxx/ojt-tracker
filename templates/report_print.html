@@ -126,7 +126,7 @@
                 </div>
                 <div class="flex gap-10">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Hours Rendered</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Period Hours</p>
                         <p class="text-xl font-black text-blue-600">{{ total_period_hours }}h</p>
                     </div>
                     <div>
@@ -141,8 +141,8 @@
             <thead>
                 <tr class="border-b-2 border-slate-200">
                     <th class="py-3 w-28 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
-                    <th class="py-3 w-36 text-[10px] font-bold text-slate-400 uppercase tracking-widest">AM (In/Out)</th>
-                    <th class="py-3 w-36 text-[10px] font-bold text-slate-400 uppercase tracking-widest">PM (In/Out)</th>
+                    <th class="py-3 w-32 text-[10px] font-bold text-slate-400 uppercase tracking-widest">AM (In/Out)</th>
+                    <th class="py-3 w-32 text-[10px] font-bold text-slate-400 uppercase tracking-widest">PM (In/Out)</th>
                     <th class="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Tasks & Accomplishments</th>
                     <th class="py-3 w-12 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Hrs</th>
                 </tr>
@@ -150,13 +150,13 @@
             <tbody class="text-sm">
                 {% for log in logs %}
                 <tr class="border-b border-slate-100 hover:bg-slate-50/50">
-                    <td class="py-4 font-bold text-slate-700 vertical-align-top">{{ log.date }}</td>
-                    <td class="py-4 text-slate-500">{{ log.m_in }} - {{ log.m_out }}</td>
-                    <td class="py-4 text-slate-500">{{ log.a_in }} - {{ log.a_out }}</td>
-                    <td class="py-4 text-slate-600 italic text-xs whitespace-normal break-words leading-relaxed">
+                    <td class="py-4 font-bold text-slate-700 align-top">{{ log.date }}</td>
+                    <td class="py-4 text-slate-500 align-top">{{ log.m_in }} - {{ log.m_out }}</td>
+                    <td class="py-4 text-slate-500 align-top">{{ log.a_in }} - {{ log.a_out }}</td>
+                    <td class="py-4 text-slate-600 italic text-xs whitespace-normal break-words leading-relaxed align-top">
                         {{ log.description or 'No tasks recorded' }}
                     </td>
-                    <td class="py-4 font-bold text-slate-900 text-right">{{ log.hours }}</td>
+                    <td class="py-4 font-bold text-slate-900 text-right align-top">{{ log.hours }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -164,7 +164,7 @@
 
         <div class="mt-10 flex justify-end">
             <div class="bg-slate-900 text-white px-6 py-3 rounded-lg inline-flex items-center gap-4 shadow-xl">
-                <span class="text-xs font-bold uppercase tracking-widest opacity-60">Grand Total for Period</span>
+                <span class="text-xs font-bold uppercase tracking-widest opacity-60">Total for this Period</span>
                 <span class="text-2xl font-black">{{ total_period_hours }} Hours</span>
             </div>
         </div>
@@ -177,7 +177,7 @@
             </div>
             <div class="text-center">
                 <div class="border-b border-slate-900 mb-2 w-full h-12"></div>
-                <p class="text-xs font-bold text-slate-900 uppercase tracking-widest underline underline-offset-4 decoration-slate-300">Supervisor Name</p>
+                <p class="text-xs font-bold text-slate-900 uppercase tracking-widest">Supervisor Name</p>
                 <p class="text-[10px] text-slate-400 uppercase tracking-tighter font-medium">Host Training Supervisor</p>
             </div>
         </div>

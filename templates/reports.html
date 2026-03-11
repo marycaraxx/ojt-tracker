@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>OJT Attendance Tracker - Supervisor Reports</title>
+    <title>OJT Attendance Tracker - Reports</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -29,7 +29,7 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        select, input[type="date"] {
+        input[type="date"] {
             appearance: none;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
@@ -55,16 +55,20 @@
             <section class="space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Report Scope</h2>
-                    <button onclick="resetFilters()" class="text-[10px] font-bold text-primary uppercase hover:underline">Clear Filters</button>
+                    <button onclick="resetFilters()" class="text-[10px] font-bold text-primary uppercase hover:underline">Reset Dates</button>
                 </div>
                 
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Student Selection</label>
-                    <div class="relative">
-                        <select id="studentSelect" class="w-full h-12 px-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary outline-none transition-all">
-                            <option value="{{ user.id }}">{{ user.name }} (Current User)</option>
-                            <option value="all">All Students</option>
-                        </select>
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Generating for:</label>
+                    <div class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold">{{ user.name }}</p>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-tight">Student ID: {{ user.student_id }}</p>
+                        </div>
+                        <input type="hidden" id="studentId" value="{{ user.id }}">
                     </div>
                 </div>
 
@@ -86,9 +90,9 @@
                             <span class="material-symbols-outlined mb-1">calendar_month</span>
                             <span class="text-xs font-bold">Attendance Log</span>
                         </button>
-                        <button id="typeHours" onclick="toggleType('hours')" class="report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
-                            <span class="material-symbols-outlined mb-1 text-slate-400">timer</span>
-                            <span class="text-xs font-bold">Total Hours</span>
+                        <button id="typeHours" onclick="toggleType('hours')" class="report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors text-slate-400">
+                            <span class="material-symbols-outlined mb-1">timer</span>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Total Hours</span>
                         </button>
                     </div>
                 </div>
@@ -150,11 +154,11 @@
 
             if (type === 'log') {
                 logBtn.className = "report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border-2 border-primary bg-primary/5 text-primary";
-                hourBtn.className = "report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors";
+                hourBtn.className = "report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors text-slate-400";
                 genText.innerText = "Generate PDF Report";
             } else {
                 hourBtn.className = "report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border-2 border-primary bg-primary/5 text-primary";
-                logBtn.className = "report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors";
+                logBtn.className = "report-type-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors text-slate-400";
                 genText.innerText = "Generate Hours Summary";
             }
         }
@@ -162,15 +166,18 @@
         function resetFilters() {
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
-            document.getElementById('studentSelect').selectedIndex = 0;
         }
 
         function runReport(format) {
-            const studentId = document.getElementById('studentSelect').value;
+            const studentId = document.getElementById('studentId').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             
-            // Construct query parameters including the date filters
+            if (!startDate || !endDate) {
+                alert("Please select both start and end dates.");
+                return;
+            }
+
             let queryParams = `?student_id=${studentId}&type=${selectedType}&start=${startDate}&end=${endDate}`;
             
             if (format === 'csv') {

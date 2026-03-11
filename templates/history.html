@@ -54,7 +54,7 @@
         <div class="px-4 py-4">
             <div class="flex items-stretch rounded-xl h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div class="text-slate-400 flex items-center justify-center pl-4"><span class="material-symbols-outlined">search</span></div>
-                <input id="searchInput" onkeyup="filterLogs()" class="form-input w-full border-none bg-transparent focus:ring-0 text-sm" placeholder="Search logs..."/>
+                <input id="searchInput" onkeyup="filterLogs()" class="form-input w-full border-none bg-transparent focus:ring-0 text-sm" placeholder="Search dates or tasks..."/>
             </div>
         </div>
 
@@ -98,8 +98,8 @@
                 <div class="log-card bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <p class="text-sm font-bold log-date">{{ log.date }}</p>
-                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{{ log.location }}</p>
+                            <p class="text-sm font-bold log-date text-slate-800 dark:text-white">{{ log.date }}</p>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{{ log.location or 'Office/Site' }}</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="button" 
@@ -113,21 +113,26 @@
 
                     <div class="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 dark:border-slate-800/50">
                         <div class="border-r border-slate-100 dark:border-slate-800">
-                            <p class="text-[9px] text-primary font-bold uppercase">Morning Session</p>
-                            <span class="text-xs font-bold">{{ log.m_in }} — {{ log.m_out }}</span>
+                            <p class="text-[9px] text-primary font-bold uppercase">Morning</p>
+                            <span class="text-xs font-bold dark:text-slate-300">{{ log.m_in or '--:--' }} — {{ log.m_out or '--:--' }}</span>
                         </div>
                         <div class="pl-2">
-                            <p class="text-[9px] text-amber-500 font-bold uppercase">Afternoon Session</p>
-                            <span class="text-xs font-bold">{{ log.a_in }} — {{ log.a_out }}</span>
+                            <p class="text-[9px] text-amber-500 font-bold uppercase">Afternoon</p>
+                            <span class="text-xs font-bold dark:text-slate-300">{{ log.a_in or '--:--' }} — {{ log.a_out or '--:--' }}</span>
                         </div>
                     </div>
 
                     <div class="mt-3">
                         <p id="desc-{{ loop.index }}" class="text-[11px] text-slate-500 dark:text-slate-400 log-desc-content truncated">
-                            <span class="font-bold text-slate-700 dark:text-slate-200">Tasks:</span> {{ log.description }}
+                            <span class="font-bold text-slate-700 dark:text-slate-200 uppercase text-[9px]">Accomplishment:</span> 
+                            {{ log.description if log.description else 'No tasks recorded for this session.' }}
                         </p>
                         <div class="flex justify-between items-center mt-2">
+                            {% if log.description and log.description|length > 50 %}
                             <button onclick="toggleDescription('{{ loop.index }}')" id="btn-{{ loop.index }}" class="text-[10px] text-primary font-bold uppercase">See More</button>
+                            {% else %}
+                            <div></div>
+                            {% endif %}
                             <div class="bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-lg">
                                 <span class="text-[11px] font-bold">Total: <span class="text-primary">{{ "%.2f"|format(log.hours) }} hrs</span></span>
                             </div>
@@ -143,9 +148,9 @@
                 {% endif %}
 
             {% else %}
-                <div class="flex flex-col items-center justify-center py-10 opacity-50">
-                    <span class="material-symbols-outlined text-5xl">history_toggle_off</span>
-                    <p class="text-sm mt-2">No records found for 2026</p>
+                <div class="flex flex-col items-center justify-center py-20 opacity-40">
+                    <span class="material-symbols-outlined text-6xl">history_toggle_off</span>
+                    <p class="text-sm mt-4 font-medium">No records found yet.</p>
                 </div>
             {% endif %}
         </div>
@@ -181,7 +186,9 @@
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl p-6">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold">Update Log Entry</h3>
-                <button onclick="closeEditModal()" class="text-slate-400"><span class="material-symbols-outlined">close</span></button>
+                <button onclick="closeEditModal()" class="text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
             
             <form action="/update_log" method="POST" class="space-y-4">
@@ -189,7 +196,7 @@
                 
                 <div>
                     <label class="text-[10px] font-bold uppercase text-slate-400">Date</label>
-                    <input type="date" name="date" id="modal_date" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary">
+                    <input type="date" name="date" id="modal_date" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary focus:border-primary">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -215,11 +222,13 @@
                 </div>
 
                 <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Tasks / Description</label>
-                    <textarea name="description" id="modal_description" rows="3" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary resize-none"></textarea>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Tasks / Accomplishments</label>
+                    <textarea name="description" id="modal_description" rows="3" class="w-full mt-1 rounded-xl border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm focus:ring-primary resize-none" placeholder="What did you do today?"></textarea>
                 </div>
 
-                <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">Save and Replace</button>
+                <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all mt-2">
+                    Save and Replace
+                </button>
             </form>
         </div>
     </div>
@@ -228,11 +237,11 @@
         function openEditModal(id, date, mIn, mOut, aIn, aOut, desc) {
             document.getElementById('modal_log_id').value = id;
             document.getElementById('modal_date').value = date;
-            document.getElementById('modal_m_in').value = mIn;
-            document.getElementById('modal_m_out').value = mOut;
-            document.getElementById('modal_a_in').value = aIn;
-            document.getElementById('modal_a_out').value = aOut;
-            document.getElementById('modal_description').value = desc;
+            document.getElementById('modal_m_in').value = mIn !== 'None' ? mIn : '';
+            document.getElementById('modal_m_out').value = mOut !== 'None' ? mOut : '';
+            document.getElementById('modal_a_in').value = aIn !== 'None' ? aIn : '';
+            document.getElementById('modal_a_out').value = aOut !== 'None' ? aOut : '';
+            document.getElementById('modal_description').value = desc !== 'None' ? desc : '';
             
             const modal = document.getElementById('editModal');
             modal.classList.remove('hidden-modal');

@@ -10,10 +10,9 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'ojt_secret_key_123'
 
-# --- CONFIGURATION (UPDATED FOR POSTGRESQL) ---
+# --- CONFIGURATION (POSTGRESQL & SQLITE) ---
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Look for DATABASE_URL (PostgreSQL) from Render, otherwise use SQLite
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -22,7 +21,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///' + os.path.j
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'profile_pics')
 
-# Ensure the upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
@@ -45,12 +43,12 @@ class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     date = db.Column(db.String(50))      
-    location = db.Column(db.String(100))
-    m_in = db.Column(db.String(20))
-    m_out = db.Column(db.String(20))
-    a_in = db.Column(db.String(20))
-    a_out = db.Column(db.String(20))
-    description = db.Column(db.Text)
+    location = db.Column(db.String(100), default="Office")
+    m_in = db.Column(db.String(20), default="--:--")
+    m_out = db.Column(db.String(20), default="--:--")
+    a_in = db.Column(db.String(20), default="--:--")
+    a_out = db.Column(db.String(20), default="--:--")
+    description = db.Column(db.Text, default="")
     hours = db.Column(db.Float, default=0.0)
 
 with app.app_context():
@@ -85,7 +83,6 @@ def dashboard():
         session.clear()
         return redirect(url_for('login_page'))
 
-    # Calculate total hours rendered for 2026
     logs_2026 = Attendance.query.filter(Attendance.user_id == user.id, Attendance.date.like('%2026%')).all()
     total_hours = sum(log.hours for log in logs_2026)
     
@@ -99,52 +96,41 @@ def dashboard():
     user.remaining_hours = round(remaining_hours, 2)
     user.remaining_days = int(remaining_days) if remaining_days % 1 == 0 else round(remaining_days, 1)
     
-    return render_template('dashboard.html', user=user)
+    # Get today's task if it exists
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    today_log = Attendance.query.filter_by(user_id=user.id, date=today_str).first()
+    today_task = today_log.description if today_log else ""
+
+    return render_template('dashboard.html', user=user, today_task=today_task)
 
 @app.route('/attendance')
 @login_required
 def attendance_page():
     user = User.query.get(session.get('user_id'))
-    if not user:
-        session.clear()
-        return redirect(url_for('login_page'))
     return render_template('attendance.html', user=user)
 
 @app.route('/log')
 @login_required
 def history():
     user = User.query.get(session.get('user_id'))
-    if not user:
-        session.clear()
-        return redirect(url_for('login_page'))
-    
     logs = Attendance.query.filter(
         Attendance.user_id == user.id, 
         Attendance.date.like('%2026%')
     ).order_by(Attendance.date.desc()).all()
         
     total_hours = sum(log.hours for log in logs)
-    user.total_hours = round(total_hours, 2)
-    
-    return render_template('history.html', user=user, logs=logs, total_hours=user.total_hours)
+    return render_template('history.html', user=user, logs=logs, total_hours=round(total_hours, 2))
 
 @app.route('/profile')
 @login_required
 def profile_page():
     user = User.query.get(session.get('user_id'))
-    if not user:
-        session.clear()
-        return redirect(url_for('login_page'))
     return render_template('profile.html', user=user)
 
 @app.route('/reports')
 @login_required
 def reports():
     user = User.query.get(session.get('user_id'))
-    if not user:
-        session.clear()
-        return redirect(url_for('login_page'))
-        
     return render_template('reports.html', user=user)
 
 # --- API & ACTION ROUTES ---
@@ -153,44 +139,90 @@ def reports():
 def signup():
     data = request.json
     username = data.get('username', '').strip()
-    password = data.get('password')
+    password = data.get('password', '').strip()
     student_id = data.get('student_id', '').strip()
     
     if not username or not password or not student_id:
-        return jsonify({"success": False, "message": "Missing required fields"}), 400
+        return jsonify({"success": False, "message": "All fields are required"}), 400
 
     if User.query.filter_by(username=username).first():
         return jsonify({"success": False, "message": "Username already exists"}), 400
-    if User.query.filter_by(student_id=student_id).first():
-        return jsonify({"success": False, "message": "Student ID already registered"}), 400
     
-    new_user = User(username=username, password=password, student_id=student_id, name=username, target_hours=480.0)
+    new_user = User(username=username, password=password, student_id=student_id, name=username)
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"success": True, "message": "Account created!"})
+    return jsonify({"success": True})
 
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
     user = User.query.filter_by(username=data.get('username'), password=data.get('password')).first()
-    
     if user:
         session['user_id'] = user.id
-        return jsonify({"success": True}), 200
+        return jsonify({"success": True})
     return jsonify({"success": False, "message": "Invalid credentials"}), 401
+
+@app.route('/api/submit_task', methods=['POST'])
+@login_required
+def submit_task():
+    data = request.json
+    description = data.get('description', '').strip()
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    user_id = session['user_id']
+
+    log = Attendance.query.filter_by(user_id=user_id, date=today_str).first()
+    if not log:
+        log = Attendance(user_id=user_id, date=today_str, description=description)
+        db.session.add(log)
+    else:
+        log.description = description
+    
+    db.session.commit()
+    return jsonify({"success": True})
+
+@app.route('/api/attendance/action', methods=['POST'])
+@login_required
+def attendance_action():
+    data = request.json
+    action_type = data.get('type') # 'm_in', 'm_out', 'a_in', 'a_out'
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    time_str = datetime.now().strftime('%H:%M')
+    user_id = session['user_id']
+
+    log = Attendance.query.filter_by(user_id=user_id, date=today_str).first()
+    if not log:
+        log = Attendance(user_id=user_id, date=today_str)
+        db.session.add(log)
+
+    setattr(log, action_type, time_str)
+
+    # Auto-calculate hours if it's an 'out' action
+    if action_type in ['m_out', 'a_out']:
+        fmt = '%H:%M'
+        try:
+            m_hrs = 0
+            if log.m_in != '--:--' and log.m_out != '--:--':
+                m_hrs = (datetime.strptime(log.m_out, fmt) - datetime.strptime(log.m_in, fmt)).total_seconds() / 3600
+            
+            a_hrs = 0
+            if log.a_in != '--:--' and log.a_out != '--:--':
+                a_hrs = (datetime.strptime(log.a_out, fmt) - datetime.strptime(log.a_in, fmt)).total_seconds() / 3600
+            
+            log.hours = round(max(0, m_hrs + a_hrs), 2)
+        except:
+            pass
+
+    db.session.commit()
+    return jsonify({"success": True, "time": time_str})
 
 @app.route('/api/log-past', methods=['POST'])
 @login_required
 def log_past():
     data = request.json
     try:
-        raw_date = data.get('date')
-        if not raw_date or not raw_date.startswith('2026'):
-            return jsonify({"success": False, "message": "Only 2026 logs are allowed"}), 400
-
         new_log = Attendance(
             user_id=session['user_id'],
-            date=raw_date,
+            date=data.get('date'),
             location=data.get('location', 'Office'),
             m_in=data.get('m_in', '--:--'), 
             m_out=data.get('m_out', '--:--'),
@@ -203,88 +235,60 @@ def log_past():
         db.session.commit()
         return jsonify({"success": True})
     except Exception as e:
-        db.session.rollback()
         return jsonify({"success": False, "message": str(e)}), 400
 
 @app.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
     user = User.query.get(session['user_id'])
-    if not user:
-        return redirect(url_for('login_page'))
-    
     user.name = request.form.get('name', user.name)
     user.email = request.form.get('email', user.email)
     user.phone = request.form.get('phone', user.phone)
     user.department = request.form.get('department', user.department)
     
+    if request.form.get('password'):
+        user.password = request.form.get('password')
+
     if 'profile_pic' in request.files:
         file = request.files['profile_pic']
         if file and file.filename != '':
-            if user.profile_pic != 'default.png':
-                old_path = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_pic)
-                if os.path.exists(old_path):
-                    try: os.remove(old_path)
-                    except: pass
-
-            filename = secure_filename(f"user_{user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+            filename = secure_filename(f"user_{user.id}_{file.filename}")
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             user.profile_pic = filename
 
     db.session.commit()
     return redirect(url_for('profile_page'))
 
-@app.route('/export/csv')
-@login_required
-def export_attendance_csv():
-    user_id = session.get('user_id')
-    start_date = request.args.get('start')
-    end_date = request.args.get('end')
-
-    query = Attendance.query.filter_by(user_id=user_id)
-    if start_date:
-        query = query.filter(Attendance.date >= start_date)
-    if end_date:
-        query = query.filter(Attendance.date <= end_date)
-
-    logs = query.order_by(Attendance.date.asc()).all()
-
-    si = io.StringIO()
-    cw = csv.writer(si)
-    cw.writerow(['Date', 'Location', 'Morning In', 'Morning Out', 'Afternoon In', 'Afternoon Out', 'Total Hours', 'Accomplishments'])
-    
-    for log in logs:
-        cw.writerow([log.date, log.location, log.m_in, log.m_out, log.a_in, log.a_out, log.hours, log.description])
-
-    output = make_response(si.getvalue())
-    output.headers["Content-Disposition"] = f"attachment; filename=Attendance_Log_{datetime.now().strftime('%Y%m%d')}.csv"
-    output.headers["Content-type"] = "text/csv"
-    return output
-
 @app.route('/export/pdf')
 @login_required
-def export_attendance_pdf():
-    user = User.query.get(session.get('user_id'))
+def export_pdf():
+    # Use the logged-in user's ID from the session for security
+    user_id = session.get('user_id') 
+    user = User.query.get(user_id)
+    
+    # Get date filters from the URL parameters
     start_date = request.args.get('start')
     end_date = request.args.get('end')
-
-    query = Attendance.query.filter_by(user_id=user.id)
+    
+    # Fetch logs only for this specific user
+    query = Attendance.query.filter_by(user_id=user_id)
+    
     if start_date:
         query = query.filter(Attendance.date >= start_date)
     if end_date:
         query = query.filter(Attendance.date <= end_date)
-
+        
     logs = query.order_by(Attendance.date.asc()).all()
     
-    # FIX: Calculate total here
-    calculated_total = round(sum(log.hours for log in logs), 2)
+    # Calculate total hours for the report
+    total_period_hours = round(sum(log.hours for log in logs), 2)
     
     return render_template('report_print.html', 
                            user=user, 
                            logs=logs, 
                            start=start_date, 
                            end=end_date, 
-                           total_period_hours=calculated_total, # Sent to HTML
+                           total_period_hours=total_period_hours,
                            now=datetime.now())
 
 @app.route('/update_log', methods=['POST'])
@@ -292,7 +296,6 @@ def export_attendance_pdf():
 def update_log():
     log_id = request.form.get('log_id')
     log_entry = Attendance.query.filter_by(id=log_id, user_id=session['user_id']).first()
-    
     if log_entry:
         log_entry.date = request.form.get('date')
         log_entry.m_in = request.form.get('m_in')
@@ -300,16 +303,13 @@ def update_log():
         log_entry.a_in = request.form.get('a_in')
         log_entry.a_out = request.form.get('a_out')
         log_entry.description = request.form.get('description')
-
-        fmt = '%H:%M'
+        # Simple recalculation
         try:
-            tdelta1 = datetime.strptime(log_entry.m_out, fmt) - datetime.strptime(log_entry.m_in, fmt)
-            tdelta2 = datetime.strptime(log_entry.a_out, fmt) - datetime.strptime(log_entry.a_in, fmt)
-            total_hrs = (tdelta1.total_seconds() + tdelta2.total_seconds()) / 3600
-            log_entry.hours = round(max(0, total_hrs), 2)
-        except Exception as e:
-            print(f"Calculation Error: {e}")
-        
+            fmt = '%H:%M'
+            m = (datetime.strptime(log_entry.m_out, fmt) - datetime.strptime(log_entry.m_in, fmt)).total_seconds() / 3600
+            a = (datetime.strptime(log_entry.a_out, fmt) - datetime.strptime(log_entry.a_in, fmt)).total_seconds() / 3600
+            log_entry.hours = round(max(0, m + a), 2)
+        except: pass
         db.session.commit()
     return redirect(url_for('history'))
 

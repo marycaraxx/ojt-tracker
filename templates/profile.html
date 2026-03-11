@@ -61,66 +61,66 @@
                         </button>
                     </div>
 
-                    <div class="flex flex-col items-center justify-center text-center">
-                        <input type="text" name="name" value="{{ user.name }}" class="bg-transparent border-0 text-center text-2xl font-bold p-0 focus:ring-0 w-full" placeholder="Your Name">
+                    <div class="flex flex-col items-center justify-center text-center w-full">
+                        <input type="text" name="name" value="{{ user.name }}" class="bg-transparent border-0 text-center text-2xl font-bold p-0 focus:ring-0 w-full text-slate-900 dark:text-white" placeholder="Your Name">
                         <p class="text-primary text-base font-semibold leading-normal">Student Intern</p>
                         <p class="text-slate-500 dark:text-slate-400 text-sm font-normal mt-1">
-                            ID: {{ user.student_id }} | Dept: {{ user.department or 'Not Set' }}
+                            ID: {{ user.student_id }}
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div class="px-4 pb-24">
+            <div class="px-4 pb-32">
                 <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-4 opacity-70">Contact & Affiliation</h3>
                 <div class="flex flex-col gap-3">
                     
-                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14">
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
                         <div class="flex items-center justify-center pl-4 text-slate-400">
                             <span class="material-symbols-outlined text-xl">corporate_fare</span>
                         </div>
-                        <input name="department" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0" value="{{ user.department }}" placeholder="Department (e.g. BS Computer Engineering)"/>
+                        <input name="department" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.department }}" placeholder="Department / Course"/>
                     </div>
 
-                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14">
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
                         <div class="flex items-center justify-center pl-4 text-slate-400">
                             <span class="material-symbols-outlined text-xl">mail</span>
                         </div>
-                        <input name="email" type="email" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0" value="{{ user.email }}" placeholder="Email Address"/>
+                        <input name="email" type="email" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.email }}" placeholder="Email Address"/>
                     </div>
 
-                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14">
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
                         <div class="flex items-center justify-center pl-4 text-slate-400">
                             <span class="material-symbols-outlined text-xl">call</span>
                         </div>
-                        <input name="phone" type="text" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0" value="{{ user.phone }}" placeholder="Mobile Number"/>
+                        <input name="phone" type="text" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.phone }}" placeholder="Mobile Number"/>
                     </div>
                 </div>
 
-                <div class="mt-6 px-2">
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-6 opacity-70">Security & Account</h3>
+                <div class="flex flex-col gap-3">
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
+                        <div class="flex items-center justify-center pl-4 text-slate-400">
+                            <span class="material-symbols-outlined text-xl">lock</span>
+                        </div>
+                        <input name="password" type="password" id="profilePassword" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.password }}" placeholder="Update Password"/>
+                        <button type="button" onclick="togglePass()" class="pr-4 text-slate-400">
+                            <span class="material-symbols-outlined text-xl" id="passIcon">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-8 px-2">
                     <button type="submit" class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">
                         Save Profile Changes
                     </button>
                 </div>
 
-                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-8 opacity-70">Account Settings</h3>
-                <div class="flex flex-col gap-2">
-                    <a class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 group" href="#">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-primary/10 p-2 rounded-lg text-primary">
-                                <span class="material-symbols-outlined">lock</span>
-                            </div>
-                            <span class="font-medium">Change Password</span>
-                        </div>
-                        <span class="material-symbols-outlined text-slate-400">chevron_right</span>
-                    </a>
-                </div>
-
                 <div class="mt-10 px-2">
-                    <button type="button" onclick="location.href='/logout'" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-4 rounded-xl border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2">
+                    <button type="button" onclick="location.href='/logout'" class="w-full bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-bold py-4 rounded-xl border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined">logout</span> Log Out
                     </button>
-                    <p class="text-center text-xs text-slate-400 mt-6">App Version 2.4.0</p>
+                    <p class="text-center text-xs text-slate-400 mt-6 pb-4">App Version 2.5.0</p>
                 </div>
             </div>
         </form>
@@ -137,6 +137,7 @@
     </div>
 
     <script>
+        // Preview profile picture before upload
         document.getElementById('imageInput').addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -147,6 +148,19 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        // Toggle Password Visibility
+        function togglePass() {
+            const passInput = document.getElementById('profilePassword');
+            const passIcon = document.getElementById('passIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                passIcon.innerText = 'visibility_off';
+            } else {
+                passInput.type = 'password';
+                passIcon.innerText = 'visibility';
+            }
+        }
     </script>
 </body>
 </html>

@@ -31,26 +31,16 @@
 
             <div class="text-center mb-8">
                 <h1 id="formTitle" class="text-2xl font-bold tracking-tight">Welcome Back</h1>
-                <p id="formSub" class="text-slate-500 text-sm mt-1">Please sign in to continue.</p>
+                <p id="formSub" class="text-slate-500 text-sm mt-1">Please enter your credentials to continue.</p>
             </div>
 
             <form id="authForm" class="space-y-4">
-                <div id="studentIdContainer" class="hidden transition-all duration-300">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Student ID</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">badge</span>
-                        <input type="text" id="student_id" 
-                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary" 
-                            placeholder="e.g. 2026-1234">
-                    </div>
-                </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Username</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
                         <input type="text" id="username" required 
-                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary" 
+                            class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white" 
                             placeholder="Enter username">
                     </div>
                 </div>
@@ -60,18 +50,28 @@
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">lock</span>
                         <input type="password" id="password" required 
-                            class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary" 
+                            class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white" 
                             placeholder="••••••••">
                     </div>
                 </div>
 
+                <div id="studentIdContainer" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Student ID</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">badge</span>
+                        <input type="text" id="student_id" 
+                            class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white" 
+                            placeholder="e.g. 2026-1234">
+                    </div>
+                </div>
+
                 <button type="submit" id="submitBtn" 
-                    class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    class="w-full h-14 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4">
                     Sign In <span class="material-symbols-outlined">arrow_forward</span>
                 </button>
             </form>
 
-            <div class="mt-8 text-center">
+            <div class="mt-8 text-center border-t border-slate-100 dark:border-slate-800 pt-6">
                 <button id="toggleBtn" onclick="toggleAuth()" class="text-sm font-medium text-slate-500 hover:text-primary transition-colors">
                     Don't have an account? <span class="text-primary font-bold underline underline-offset-4">Sign Up</span>
                 </button>
@@ -89,21 +89,22 @@
             const btn = document.getElementById('submitBtn');
             const toggle = document.getElementById('toggleBtn');
             const studentIdBox = document.getElementById('studentIdContainer');
+            const studentIdInput = document.getElementById('student_id');
 
             if (isLogin) {
                 title.innerText = "Welcome Back";
-                sub.innerText = "Please sign in to continue.";
+                sub.innerText = "Please enter your credentials to continue.";
                 btn.innerHTML = 'Sign In <span class="material-symbols-outlined">arrow_forward</span>';
                 toggle.innerHTML = 'Don\'t have an account? <span class="text-primary font-bold underline underline-offset-4">Sign Up</span>';
                 studentIdBox.classList.add('hidden');
-                document.getElementById('student_id').required = false;
+                studentIdInput.required = false;
             } else {
                 title.innerText = "Create Account";
-                sub.innerText = "Register to start tracking your 2026 OJT.";
+                sub.innerText = "Register with a unique username and ID.";
                 btn.innerHTML = 'Create Account <span class="material-symbols-outlined">person_add</span>';
                 toggle.innerHTML = 'Already have an account? <span class="text-primary font-bold underline underline-offset-4">Sign In</span>';
                 studentIdBox.classList.remove('hidden');
-                document.getElementById('student_id').required = true;
+                studentIdInput.required = true;
             }
         }
 
@@ -111,12 +112,12 @@
             e.preventDefault();
             
             const payload = {
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value.trim()
             };
 
             if (!isLogin) {
-                payload.student_id = document.getElementById('student_id').value;
+                payload.student_id = document.getElementById('student_id').value.trim();
             }
 
             const endpoint = isLogin ? '/api/login' : '/api/signup';
@@ -134,14 +135,14 @@
                     if (isLogin) {
                         window.location.href = '/dashboard';
                     } else {
-                        alert("Registration successful! You can now sign in.");
+                        alert("Account created! Please sign in with your new password.");
                         toggleAuth();
                     }
                 } else {
-                    alert(data.message || "Error occurred");
+                    alert(data.message || "Invalid credentials. Please try again.");
                 }
             } catch (err) {
-                alert("Server connection failed.");
+                alert("Server connection failed. Please try again later.");
             }
         });
     </script>
