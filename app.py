@@ -56,7 +56,7 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
     student_id = db.Column(db.String(50), unique=True, nullable=False)
     name = db.Column(db.String(100), default="Intern")
-    program = db.Column(db.String(100), default="Program") 
+    program = db.Column(db.String(100), default="") 
     email = db.Column(db.String(120), default="")
     phone = db.Column(db.String(20), default="")
     department = db.Column(db.String(100), default="") 
