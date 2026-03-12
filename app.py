@@ -13,20 +13,28 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'ojt_secret_key_123'
 
+# --- CLOUDINARY CONFIGURATION ---
 cloudinary.config( 
-  cloud_name = "dubnko427", 
-  api_key = "611318728434917", 
-  api_secret = "-QIoOqnmGjvM5LcawvFo_SmD9MU" 
+    cloud_name = "dubnko427", 
+    api_key = "611318728434917", 
+    api_secret = "-QIoOqnmGjvM5LcawvFo_SmD9MU" 
 )
 
 # --- CONFIGURATION (POSTGRESQL & SQLITE) ---
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+# 1. First, try to get the URL from Render's environment variables
 database_url = os.environ.get('DATABASE_URL')
+
+# 2. If Render hasn't set the variable yet, use your specific link as a backup
+if not database_url:
+    database_url = "postgresql://ojt_db_1rjk_user:gCvGKVRPrwcVR3vC7QxQJqNO4uIk3R8J@dpg-d6of7jua2pns738csv8g-a/ojt_db_1rjk"
+
+# 3. Ensure it starts with postgresql:// (Required for SQLAlchemy 2.0+)
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///' + os.path.join(basedir, 'ojt_tracker.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'profile_pics')
 
@@ -50,7 +58,8 @@ class User(db.Model):
     email = db.Column(db.String(120), default="")
     phone = db.Column(db.String(20), default="")
     department = db.Column(db.String(100), default="") 
-    profile_pic = db.Column(db.String(200), default="default.png")
+    # Increased to 500 to store full Cloudinary URLs securely
+    profile_pic = db.Column(db.String(500), default="default.png")
     target_hours = db.Column(db.Float, default=480.0) 
     logs = db.relationship('Attendance', backref='user', lazy=True)
 
@@ -111,7 +120,6 @@ def dashboard():
     user.remaining_hours = round(remaining_hours, 2)
     user.remaining_days = int(remaining_days) if remaining_days % 1 == 0 else round(remaining_days, 1)
     
-    # Get today's task using PH Time
     today_str = get_ph_time().strftime('%Y-%m-%d')
     today_log = Attendance.query.filter_by(user_id=user.id, date=today_str).first()
     today_task = today_log.description if today_log else ""
@@ -182,7 +190,6 @@ def login():
 def submit_task():
     data = request.json
     description = data.get('description', '').strip()
-    # Use PH Time
     today_str = get_ph_time().strftime('%Y-%m-%d')
     user_id = session['user_id']
 
@@ -200,9 +207,8 @@ def submit_task():
 @login_required
 def attendance_action():
     data = request.json
-    action_type = data.get('type') # 'm_in', 'm_out', 'a_in', 'a_out'
+    action_type = data.get('type') 
     
-    # Use PH Time for both date and timestamp
     ph_now = get_ph_time()
     today_str = ph_now.strftime('%Y-%m-%d')
     time_str = ph_now.strftime('%H:%M')
@@ -215,7 +221,6 @@ def attendance_action():
 
     setattr(log, action_type, time_str)
 
-    # Auto-calculate hours if it's an 'out' action
     if action_type in ['m_out', 'a_out']:
         fmt = '%H:%M'
         try:
@@ -257,10 +262,8 @@ def log_past():
         return jsonify({"success": False, "message": str(e)}), 400
 
 @app.route('/update_profile', methods=['POST'])
+@login_required
 def update_profile():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-        
     user = User.query.get(session['user_id'])
     user.name = request.form.get('name', user.name)
     user.email = request.form.get('email', user.email)
@@ -273,7 +276,7 @@ def update_profile():
     if 'profile_pic' in request.files:
         file = request.files['profile_pic']
         if file and file.filename != '':
-            # This uploads the file to Cloudinary and gets a permanent URL
+            # Upload to Cloudinary and get permanent URL
             upload_result = cloudinary.uploader.upload(file)
             user.profile_pic = upload_result['secure_url']
 
@@ -304,7 +307,7 @@ def export_pdf():
                            start=start_date, 
                            end=end_date, 
                            total_period_hours=total_period_hours,
-                           now=get_ph_time()) # Corrected to PH Time
+                           now=get_ph_time())
 
 @app.route('/update_log', methods=['POST'])
 @login_required
@@ -318,7 +321,6 @@ def update_log():
         log_entry.a_in = request.form.get('a_in')
         log_entry.a_out = request.form.get('a_out')
         log_entry.description = request.form.get('description')
-        # Simple recalculation
         try:
             fmt = '%H:%M'
             m = (datetime.strptime(log_entry.m_out, fmt) - datetime.strptime(log_entry.m_in, fmt)).total_seconds() / 3600
@@ -334,5 +336,6 @@ def logout():
     return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
+    # Use the port assigned by Render
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
