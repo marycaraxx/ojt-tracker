@@ -47,10 +47,8 @@
                         {% if user.profile_pic == 'default.png' %}
                             {% set avatar_url = "https://ui-avatars.com/api/?name=" + user.name + "&background=135bec&color=fff&size=128" %}
                         {% elif user.profile_pic.startswith('http') %}
-                            {# If it's a Cloudinary URL #}
                             {% set avatar_url = user.profile_pic %}
                         {% else %}
-                            {# Fallback for local testing #}
                             {% set avatar_url = url_for('static', filename='profile_pics/' + user.profile_pic) %}
                         {% endif %}
                         <div id="profile-preview" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 border-4 border-white dark:border-slate-800 shadow-lg" 
@@ -66,7 +64,9 @@
 
                     <div class="flex flex-col items-center justify-center text-center w-full">
                         <input type="text" name="name" value="{{ user.name }}" class="bg-transparent border-0 text-center text-2xl font-bold p-0 focus:ring-0 w-full text-slate-900 dark:text-white" placeholder="Your Name">
-                        <p class="text-primary text-base font-semibold leading-normal">Student Intern</p>
+                        
+                        <p class="text-primary text-base font-semibold leading-normal">{{ user.program if user.program else 'Student Intern' }}</p>
+                        
                         <p class="text-slate-500 dark:text-slate-400 text-sm font-normal mt-1">
                             ID: {{ user.student_id }}
                         </p>
@@ -75,16 +75,28 @@
             </div>
 
             <div class="px-4 pb-32">
-                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-4 opacity-70">Contact & Affiliation</h3>
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-4 opacity-70">Academic Information</h3>
                 <div class="flex flex-col gap-3">
-                    
+                    <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
+                        <div class="flex items-center justify-center pl-4 text-slate-400">
+                            <span class="material-symbols-outlined text-xl">school</span>
+                        </div>
+                        <input name="program" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.program }}" placeholder="Academic Program (e.g. Computer Engineering)"/>
+                    </div>
+                </div>
+
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-6 opacity-70">OJT Placement</h3>
+                <div class="flex flex-col gap-3">
                     <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
                         <div class="flex items-center justify-center pl-4 text-slate-400">
                             <span class="material-symbols-outlined text-xl">corporate_fare</span>
                         </div>
-                        <input name="department" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.department }}" placeholder="Department / Course"/>
+                        <input name="department" class="flex w-full border-0 bg-transparent px-3 text-base focus:ring-0 dark:text-white" value="{{ user.department }}" placeholder="OJT Department / Office"/>
                     </div>
+                </div>
 
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-6 opacity-70">Contact Details</h3>
+                <div class="flex flex-col gap-3">
                     <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
                         <div class="flex items-center justify-center pl-4 text-slate-400">
                             <span class="material-symbols-outlined text-xl">mail</span>
@@ -100,7 +112,7 @@
                     </div>
                 </div>
 
-                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-6 opacity-70">Security & Account</h3>
+                <h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider px-2 pb-2 pt-6 opacity-70">Security</h3>
                 <div class="flex flex-col gap-3">
                     <div class="flex w-full items-stretch rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-14 shadow-sm">
                         <div class="flex items-center justify-center pl-4 text-slate-400">

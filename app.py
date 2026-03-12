@@ -55,10 +55,11 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
     student_id = db.Column(db.String(50), unique=True, nullable=False)
     name = db.Column(db.String(100), default="Intern")
+    # Added Program field
+    program = db.Column(db.String(100), default="Program") 
     email = db.Column(db.String(120), default="")
     phone = db.Column(db.String(20), default="")
     department = db.Column(db.String(100), default="") 
-    # Increased to 500 to store full Cloudinary URLs securely
     profile_pic = db.Column(db.String(500), default="default.png")
     target_hours = db.Column(db.Float, default=480.0) 
     logs = db.relationship('Attendance', backref='user', lazy=True)
@@ -270,6 +271,7 @@ def log_past():
 def update_profile():
     user = User.query.get(session['user_id'])
     user.name = request.form.get('name', user.name)
+    user.program = request.form.get('program', user.program) # Added this
     user.email = request.form.get('email', user.email)
     user.phone = request.form.get('phone', user.phone)
     user.department = request.form.get('department', user.department)

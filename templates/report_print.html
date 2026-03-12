@@ -14,7 +14,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='profile_pics/marsu_logo.png') }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         /* 1. BASE STYLES */
@@ -78,7 +78,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 p-4 md:p-10">
+<body class="bg-slate-50 p-4 md:p-10 text-slate-900">
 
     <div class="no-print max-w-4xl mx-auto mb-6 flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <a href="/reports" class="text-slate-500 hover:text-blue-600 flex items-center gap-2 font-semibold transition-colors">
@@ -99,8 +99,8 @@
         
         <div class="flex justify-between items-center border-b-2 border-slate-900 pb-8 mb-8">
             <div class="flex items-center gap-5">
-                <div class="h-16 w-16 overflow-hidden rounded-2xl shadow-lg border border-slate-100">
-                    <img src="{{ url_for('static', filename='profile_pics/marsu_logo.png') }}" alt="OJT Tracker Logo" class="h-full w-full object-cover">
+                <div class="h-16 w-16 overflow-hidden rounded-2xl shadow-lg border border-slate-100 bg-white p-1">
+                    <img src="{{ url_for('static', filename='profile_pics/marsu_logo.png') }}" alt="OJT Tracker Logo" class="h-full w-full object-contain">
                 </div>
                 <div>
                     <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight leading-none">Marinduque State University</h1>
@@ -124,7 +124,7 @@
             <div class="space-y-4">
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Trainee Name</p>
-                    <p class="text-lg font-bold text-slate-900">{{ user.name }}</p>
+                    <p class="text-lg font-bold text-slate-900 leading-tight">{{ user.name }}</p>
                 </div>
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Student ID</p>
@@ -134,7 +134,7 @@
             <div class="space-y-4 border-l border-slate-200 pl-8">
                 <div>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Department / Office</p>
-                    <p class="font-semibold text-slate-700 leading-none">{{ user.department or 'General Administration' }}</p>
+                    <p class="font-semibold text-slate-700 leading-tight">{{ user.department or 'General Administration' }}</p>
                 </div>
                 <div class="flex gap-10">
                     <div>
@@ -153,8 +153,8 @@
             <thead>
                 <tr class="border-b-2 border-slate-200">
                     <th class="py-3 w-28 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
-                    <th class="py-3 w-32 text-[10px] font-bold text-slate-400 uppercase tracking-widest">AM (In/Out)</th>
-                    <th class="py-3 w-32 text-[10px] font-bold text-slate-400 uppercase tracking-widest">PM (In/Out)</th>
+                    <th class="py-3 w-32 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">AM (In/Out)</th>
+                    <th class="py-3 w-32 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">PM (In/Out)</th>
                     <th class="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Tasks & Accomplishments</th>
                     <th class="py-3 w-12 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Hrs</th>
                 </tr>
@@ -163,8 +163,8 @@
                 {% for log in logs %}
                 <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                     <td class="py-4 font-bold text-slate-700 align-top">{{ log.date }}</td>
-                    <td class="py-4 text-slate-500 align-top tabular-nums">{{ log.m_in }} - {{ log.m_out }}</td>
-                    <td class="py-4 text-slate-500 align-top tabular-nums">{{ log.a_in }} - {{ log.a_out }}</td>
+                    <td class="py-4 text-slate-500 align-top tabular-nums text-center">{{ log.m_in }} - {{ log.m_out }}</td>
+                    <td class="py-4 text-slate-500 align-top tabular-nums text-center">{{ log.a_in }} - {{ log.a_out }}</td>
                     <td class="py-4 text-slate-600 text-xs whitespace-normal break-words leading-relaxed align-top">
                         <div class="pr-4">
                             {{ log.description or 'Routine OJT tasks and departmental support.' }}
@@ -210,6 +210,10 @@
                 <br>Copyright © 2026. All Rights Reserved.
             </p>
         </div>
+    </div>
+
+    <div class="no-print mt-10 text-center text-slate-400 text-xs italic">
+        Tip: If the formatting looks off in the print preview, ensure "Background Graphics" is enabled in your print settings.
     </div>
 
 </body>
