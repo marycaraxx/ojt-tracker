@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, send_file, make_response
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import cloudinary
@@ -55,7 +56,6 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
     student_id = db.Column(db.String(50), unique=True, nullable=False)
     name = db.Column(db.String(100), default="Intern")
-    # Added Program field
     program = db.Column(db.String(100), default="Program") 
     email = db.Column(db.String(120), default="")
     phone = db.Column(db.String(20), default="")
@@ -76,8 +76,16 @@ class Attendance(db.Model):
     description = db.Column(db.Text, default="")
     hours = db.Column(db.Float, default=0.0)
 
+# --- AUTO-MIGRATION LOGIC ---
 with app.app_context():
     db.create_all()
+    # This block manually checks if the 'program' column exists and adds it if missing
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS program VARCHAR(100) DEFAULT \'Program\''))
+            conn.commit()
+    except Exception as e:
+        print(f"Migration skip/error: {e}")
 
 # --- AUTH DECORATOR ---
 def login_required(f):
@@ -131,7 +139,6 @@ def dashboard():
 @login_required
 def attendance_page():
     user = User.query.get(session.get('user_id'))
-    # Pass the user's department to the template for auto-fill
     return render_template('attendance.html', user=user, user_location=user.department)
 
 @app.route('/log')
@@ -166,7 +173,6 @@ def signup():
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
     student_id = data.get('student_id', '').strip()
-    # If you want them to pick a department at signup, get it here:
     department = data.get('department', '').strip()
     
     if not username or not password or not student_id:
@@ -271,7 +277,7 @@ def log_past():
 def update_profile():
     user = User.query.get(session['user_id'])
     user.name = request.form.get('name', user.name)
-    user.program = request.form.get('program', user.program) # Added this
+    user.program = request.form.get('program', user.program)
     user.email = request.form.get('email', user.email)
     user.phone = request.form.get('phone', user.phone)
     user.department = request.form.get('department', user.department)
@@ -282,7 +288,6 @@ def update_profile():
     if 'profile_pic' in request.files:
         file = request.files['profile_pic']
         if file and file.filename != '':
-            # Upload to Cloudinary and get permanent URL
             upload_result = cloudinary.uploader.upload(file)
             user.profile_pic = upload_result['secure_url']
 
@@ -342,6 +347,5 @@ def logout():
     return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
-    # Use the port assigned by Render
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
