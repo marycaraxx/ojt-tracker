@@ -3,3 +3,4 @@ Flask-SQLAlchemy
 pytz
 gunicorn
 cloudinary
+psycopg2-binary
