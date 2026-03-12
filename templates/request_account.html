@@ -38,6 +38,16 @@
             </div>
 
             <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 ml-1">Location / Department</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">location_on</span>
+                    <input type="text" id="department" required 
+                        class="w-full h-14 pl-12 pr-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#135bec]" 
+                        placeholder="e.g. IT Department / Accounting">
+                </div>
+            </div>
+
+            <div class="space-y-2">
                 <label class="text-sm font-semibold text-slate-700 ml-1">Password</label>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
@@ -62,10 +72,10 @@
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Map 'fullname' to 'username' and include 'password' to match the Flask logic
             const data = {
                 username: document.getElementById('fullname').value.trim(),
                 student_id: document.getElementById('student_id').value.trim(),
+                department: document.getElementById('department').value.trim(), // Added department
                 password: document.getElementById('password').value.trim()
             };
 

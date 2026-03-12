@@ -65,13 +65,25 @@
                     </div>
                 </div>
 
-                <div id="studentIdContainer" class="hidden">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Student ID</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">badge</span>
-                        <input type="text" id="student_id" 
-                            class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white" 
-                            placeholder="e.g. 2026-1234">
+                <div id="signUpFields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Student ID</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">badge</span>
+                            <input type="text" id="student_id" 
+                                class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white" 
+                                placeholder="e.g. 2026-1234">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Location / Department</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">location_on</span>
+                            <input type="text" id="department" 
+                                class="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white" 
+                                placeholder="e.g. IT Department">
+                        </div>
                     </div>
                 </div>
 
@@ -98,23 +110,26 @@
             const sub = document.getElementById('formSub');
             const btn = document.getElementById('submitBtn');
             const toggle = document.getElementById('toggleBtn');
-            const studentIdBox = document.getElementById('studentIdContainer');
+            const signUpFields = document.getElementById('signUpFields');
             const studentIdInput = document.getElementById('student_id');
+            const departmentInput = document.getElementById('department');
 
             if (isLogin) {
                 title.innerText = "Welcome Back";
                 sub.innerText = "Please enter your credentials to continue.";
                 btn.innerHTML = 'Sign In <span class="material-symbols-outlined">arrow_forward</span>';
                 toggle.innerHTML = 'Don\'t have an account? <span class="text-primary font-bold underline underline-offset-4">Sign Up</span>';
-                studentIdBox.classList.add('hidden');
+                signUpFields.classList.add('hidden');
                 studentIdInput.required = false;
+                departmentInput.required = false;
             } else {
                 title.innerText = "Create Account";
-                sub.innerText = "Register with a unique username and ID.";
+                sub.innerText = "Register with your details to get started.";
                 btn.innerHTML = 'Create Account <span class="material-symbols-outlined">person_add</span>';
                 toggle.innerHTML = 'Already have an account? <span class="text-primary font-bold underline underline-offset-4">Sign In</span>';
-                studentIdBox.classList.remove('hidden');
+                signUpFields.classList.remove('hidden');
                 studentIdInput.required = true;
+                departmentInput.required = true;
             }
         }
 
@@ -128,6 +143,7 @@
 
             if (!isLogin) {
                 payload.student_id = document.getElementById('student_id').value.trim();
+                payload.department = document.getElementById('department').value.trim();
             }
 
             const endpoint = isLogin ? '/api/login' : '/api/signup';

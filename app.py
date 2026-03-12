@@ -130,7 +130,8 @@ def dashboard():
 @login_required
 def attendance_page():
     user = User.query.get(session.get('user_id'))
-    return render_template('attendance.html', user=user)
+    # Pass the user's department to the template for auto-fill
+    return render_template('attendance.html', user=user, user_location=user.department)
 
 @app.route('/log')
 @login_required
@@ -164,6 +165,8 @@ def signup():
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
     student_id = data.get('student_id', '').strip()
+    # If you want them to pick a department at signup, get it here:
+    department = data.get('department', '').strip()
     
     if not username or not password or not student_id:
         return jsonify({"success": False, "message": "All fields are required"}), 400
@@ -171,7 +174,7 @@ def signup():
     if User.query.filter_by(username=username).first():
         return jsonify({"success": False, "message": "Username already exists"}), 400
     
-    new_user = User(username=username, password=password, student_id=student_id, name=username)
+    new_user = User(username=username, password=password, student_id=student_id, name=username, department=department)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"success": True})
@@ -216,7 +219,8 @@ def attendance_action():
 
     log = Attendance.query.filter_by(user_id=user_id, date=today_str).first()
     if not log:
-        log = Attendance(user_id=user_id, date=today_str)
+        user = User.query.get(user_id)
+        log = Attendance(user_id=user_id, date=today_str, location=user.department)
         db.session.add(log)
 
     setattr(log, action_type, time_str)
